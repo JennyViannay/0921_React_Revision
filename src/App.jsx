@@ -1,66 +1,64 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
-import axios from 'axios';
+
+import { CoffeeMaker } from "./components/CoffeeMaker";
+import { AllCharacters } from "./components/AllCharacters";
+import { CharacterCard } from "./components/CharacterCard";
+import { FilterCharacters } from "./components/FilterCharacters";
+import { Infos } from "./components/Infos";
+import { Pagination } from "./components/Pagination";
 
 const App = () => {
-  const [name, setName] = useState('Jenny');
-  const [results, setResults] = useState([]);
-  const [info, setInfo] = useState([]);
-  const [movies, setMovies] = useState([]);
-  const [infosMovies, setInfosMovies] = useState();
-  const [initialPage, setPage] = useState(1);
+  const [characters, setCharacters] = useState([])
+  const [infos, setInfos] = useState({})
+  const [page, setPage] = useState(1);
 
-  const url = 'https://rickandmortyapi.com/api/character';
-  const urldbMovie = 'https://api.themoviedb.org/3/search/movie?api_key=04c35731a5ee918f014970082a0088b1&query=xmen&language=fr-FR'
-  
   useEffect(() => {
-    axios.get(url)
-    .then(response => {
-      setResults(response.data.results)
-      setInfo(response.data.info)
-    });
-    axios.get(urldbMovie)
-    .then(response => {
-      setMovies(response.data.results)
-      setInfosMovies(response.data.total_pages)
-    });
+    sendRequestCharacters(1)
   }, [])
 
-  const nextPage = () => {
-    const nextPage = initialPage + 1;
-    if (nextPage <= infosMovies) {
-      setPage(initialPage + 1);
-      axios.get(`${urldbMovie}&page=${nextPage}`)
-      .then(response => {
-        setMovies(response.data.results)
-      });
-    }
-    console.log(infosMovies)
+  const sendRequestCharacters = (numberPage) => {
+    axios.get(`https://rickandmortyapi.com/api/character?page=${numberPage}`)
+      .then(res => res.data)
+      .then(data => {
+        setStates(data)
+      })
+    setPage(numberPage)
   }
 
-  const prevPage = () => {
-    const prevRequest = info.prev;
-    axios.get(prevRequest)
-    .then(response => {
-      setResults(response.data.results)
-      setInfosMovies(response.data.total_pages)
-    })
+  const setStates = (data) => {
+    setCharacters(data.results);
+    setInfos(data.info);
   }
 
-  console.log(initialPage);
+  const getCharactersAlive = () => {
+    setCharacters(characters.filter(character => character.status === "Alive"));
+  }
+
+  const getCharactersDead = () => {
+    setCharacters(characters.filter(character => character.status === "Dead"));
+  }
+
+  const getCharactersFromEarth = () => {
+    setCharacters(characters.filter(character => character.origin.name === "Earth (C-137)"));
+  }
+
+  // console.log(characters);
+  // console.log(infos);
   return (
-    <div className="App">{name}
-      <button onClick={() => setName('Plop')}>Click</button>
-      <div>
-        <button onClick={() => prevPage()}>PREV</button>
-        <button onClick={() => nextPage()}>NEXT</button>
-        {
-          movies  ? movies.map(movie => 
-          <div>
-            <h2>{movie.title}</h2>
-          </div>  
-          ) : "No result"
+    <div className="container">
+      <CoffeeMaker />
+      {/* <Infos infos={infos} page={page} />
+      <Pagination infos={infos} page={page} sendRequestCharacters={sendRequestCharacters} />
+      <div className="my-5"></div>
+      <FilterCharacters getCharactersAlive={getCharactersAlive} getCharactersDead={getCharactersDead} getCharactersFromEarth={getCharactersFromEarth} />
+      <div className="row">
+        {characters ? characters.map(character =>
+          <CharacterCard character={character} />
+        ) : 'No results'
         }
       </div>
+      <div><AllCharacters /></div> */}
     </div>
   );
 }
